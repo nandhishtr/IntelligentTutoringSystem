@@ -8,7 +8,7 @@ from langchain_community.llms import CTransformers
 from langchain.chains import RetrievalQA
 
 # Set Hugging Face token (replace with your token or use environment variables securely)
-hf_token = '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'
+hf_token = 'xyz'
 os.environ["HF_TOKEN"] = hf_token
 
 # Path to the PDF file
