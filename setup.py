@@ -9,7 +9,7 @@ hf_token = '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'
 os.environ["HF_TOKEN"] = hf_token
 
 # Path to the PDF file
-pdf_path = "notesLA12122.pdf"
+pdf_path = "abc.pdf"
 
 # Initialize the embeddings model
 embeddings = HuggingFaceEmbeddings(model_name="NeuML/pubmedbert-base-embeddings")
