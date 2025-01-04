@@ -51,19 +51,17 @@ def get_quiz_prompt_template():
     - Include all required elements for the requested format.
     - Maintain clarity and consistency throughout the question.
 
-    Requested Question Formats:
-
-    1. **Multiple Choice Question (MCQ)**:
-    - Context: Explain the relevant concept in German.
+    Requested Question Format:
     - Question: Pose a question to the learner in English, teaching German.
     - Choices: Provide four answer options (labeled A, B, C, and D).
     - Correct Answer: Clearly specify the correct option.
     - Difficulty: Indicate whether the question is Easy, Medium, or Hard.
-    - Topic: State the topic (e.g., Vocabulary, Verb Conjugation, Sentence Structure).
+    - Topic: State the topic (e.g., Vocabulary, Verb Conjugation, Sentence Structure or anything else, just one topic).
     - Learning Objective: Specify the learning objective.
+    
+    Stick to the same exact format for every question. Do not deviate. 
 
     Example:
-    Context: The German word "Haus" means "house" in English.
     Question: What does the German word "Haus" mean in English?
     Choices:
     A. Tree
@@ -74,42 +72,6 @@ def get_quiz_prompt_template():
     Difficulty: Easy
     Topic: Vocabulary
     Learning Objective: Learn basic German vocabulary.
-
-    2. **True/False Question**:
-    - Context: Explain the relevant concept in German.
-    - Question: Pose a true/false statement in English.
-    - Choices: A. True, B. False.
-    - Correct Answer: Clearly specify the correct option.
-    - Difficulty: Indicate whether the question is Easy, Medium, or Hard.
-    - Topic: State the topic.
-    - Learning Objective: Specify the learning objective.
-
-    Example:
-    Context: The verb "gehen" in German means "to go."
-    Question: The verb "gehen" means "to eat."
-    Choices:
-    A. True
-    B. False
-    Correct Answer: B
-    Difficulty: Medium
-    Topic: Verb Conjugation
-    Learning Objective: Understand the meaning of common German verbs.
-
-    3. **Fill-in-the-Blank Question**:
-    - Context: Explain the relevant concept in German.
-    - Question: Provide a sentence with a blank for the learner to fill in.
-    - Correct Answer: Provide the correct word or phrase.
-    - Difficulty: Indicate whether the question is Easy, Medium, or Hard.
-    - Topic: State the topic.
-    - Learning Objective: Specify the learning objective.
-
-    Example:
-    Context: In German, "Ich bin" means "I am."
-    Question: "______ bin müde." (I am tired.)
-    Correct Answer: Ich
-    Difficulty: Easy
-    Topic: Sentence Structure
-    Learning Objective: Use basic German sentence structure.
 
     Context: {context}
     Generate a single quiz question based on the context and format:
