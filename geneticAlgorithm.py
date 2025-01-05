@@ -7,6 +7,9 @@ def load_questions(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+# Calculates the fitness of an individual (a set of questions) based on user performance
+# and question diversity. It rewards questions based on user performance and penalizes
+# repeated topics.
 def evaluate(individual, user_performance):
     """Fitness function that evaluates individuals based on user performance and diversity."""
     fitness = 0
@@ -81,6 +84,7 @@ def run_quiz(questions, num_questions=10):
 
     print("Welcome to the adaptive German vocabulary quiz!")
 
+    correct_answers = 0
     for i in range(num_questions):
         # Run the genetic algorithm to pick the next quiz
         best_quiz = adaptive_quiz_ga(questions, user_performance, num_questions=1)
@@ -104,6 +108,7 @@ def run_quiz(questions, num_questions=10):
         if selected_answer == question["CorrectAnswer"]:
             print("Correct!")
             user_performance[question["Topic"]] = user_performance.get(question["Topic"], 1) + 1
+            correct_answers += 1
         else:
             print(f"Wrong! The correct answer was: {question['CorrectAnswer']}")
             user_performance[question["Topic"]] = max(1, user_performance.get(question["Topic"], 1) - 1)
@@ -111,7 +116,7 @@ def run_quiz(questions, num_questions=10):
         # Track asked questions
         asked_questions.append(question)
 
-    print(f"\nQuiz completed! You answered {len([q for q in asked_questions if q['CorrectAnswer'] == selected_answer])} correctly out of {num_questions}.")
+    print(f"\nQuiz completed! You answered {correct_answers} correctly out of {num_questions}.")
 
 def main():
     questions_file = "quiz_questions.json"
