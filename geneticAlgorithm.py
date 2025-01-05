@@ -26,7 +26,7 @@ def evaluate(individual, user_performance):
     return (fitness,)
 
 
-def adaptive_quiz_ga(questions, user_performance, num_questions=10, generations=50, population_size=20):
+def adaptive_quiz_ga(questions, user_performance, num_questions=10, generations=50, population_size=50):
     """Genetic algorithm for selecting quiz questions."""
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -114,7 +114,7 @@ def run_quiz(questions, num_questions=10):
     print(f"\nQuiz completed! You answered {len([q for q in asked_questions if q['CorrectAnswer'] == selected_answer])} correctly out of {num_questions}.")
 
 def main():
-    questions_file = "quiz_questions.json"
+    questions_file = "quizzes.json"
     questions = load_questions(questions_file)
 
     run_quiz(questions, num_questions=10)
