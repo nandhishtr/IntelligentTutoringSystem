@@ -51,9 +51,12 @@ def get_quiz_prompt_template():
     - Only generate **one** question in the requested format.
     - Include all required elements for the requested format.
     - Maintain clarity and consistency throughout the question.
-    - Do not repeat the same question twice.
+    - Do not repeat the same question or rephrase previously generated questions.
+    - Ensure the question is unique and does not overlap in meaning, wording, or intent with any previous question.
+    - Carefully verify that the new question introduces fresh content or concepts that have not been used before.
     - Do not have anything trailing to the question.
-
+    - Strictly classify a question to one topic only.
+    
     Requested Question Format:
     - Question: Pose a question to the learner in English, teaching German.
     - Choices: Provide four answer options (labeled A, B, C, and D).
@@ -75,6 +78,12 @@ def get_quiz_prompt_template():
     Difficulty: Easy
     Topic: Vocabulary
     Learning Objective: Learn basic German vocabulary.
+
+    Additional Guidelines to Ensure Uniqueness:
+    1. Before generating a new question, check if the concept or topic has already been used. If it has, choose a different concept or topic.
+    2. Use diverse German words, phrases, or grammatical structures to ensure variety in the questions.
+    3. Avoid reusing similar patterns or ideas, even if the context or wording is slightly different.
+    4. Focus on covering a broad range of topics and learning objectives to maintain diversity.
 
     Context: {context}
     Generate a single quiz question based on the context and format:
@@ -124,12 +133,8 @@ def save_quizzes_to_json(results, output_file):
     print(f"Quizzes have been saved to {output_file}.")
 
 def main():
-    # Set Hugging Face token
-    hf_token = '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'
-    os.environ["HF_TOKEN"] = hf_token
-
     # Configuration
-    pdf_path = "learnGerman.pdf"
+    pdf_path = "germanLanguage.pdf"
     db_path = "vector_db"
     model_file_path = "Mistral-7B-Instruct-v0.3.Q4_K_S.gguf"
     output_file = "quizzes.json"
@@ -162,7 +167,7 @@ def main():
 
     # Generate quizzes and save to a JSON file
     results = []
-    num_quizzes = 100
+    num_quizzes = 5
     for i in range(num_quizzes):
         print(f"Generating Quiz {i + 1}...")
         result = qa_chain.invoke({"query": "Generate a helpful quiz question."})
