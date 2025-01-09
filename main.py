@@ -18,8 +18,8 @@ class QuizGenerator:
         self.model_file_path = model_file_path
         self.used_chunks = set()
         self.used_topics = set()
-        self.chunk_size = 700
-        self.chunk_overlap = 70
+        self.chunk_size = 2000
+        self.chunk_overlap = 30
 
     def initialize_embeddings(self):
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
@@ -46,51 +46,60 @@ class QuizGenerator:
         return self.pages[chunk_idx].page_content
 
     def get_quiz_prompt_template(self):
-        """Quiz generation template with context-specific reasoning and diversity."""
+        """Return the improved quiz generation prompt template."""
         return """
-        You are a German language quiz generator. Create a **single quiz question** based on the given context, using context-specific chain-of-thought reasoning.
+        You are a German language quiz generator. Your task is to create a **single quiz question** based on the given context and in the requested Multiple Choice format.
+        The question should be in **English** and designed to teach German effectively.
 
-        Instructions:
-        1. Analyze the context and extract a unique German concept or skill to teach.
-        2. Verify that the concept differs meaningfully from previous questions.
-        3. Decide on the type of question that aligns with the concept and learning goal.
-        4. Reason through the appropriate question structure, ensuring clarity and accuracy.
-        5. Format the output based on the specifications below.
+        Requirements for the question:
+        - The question text must be in English, teaching a German concept.
+        - Only generate **one** question in the requested format.
+        - Include all required elements for the requested format.
+        - Maintain clarity and consistency throughout the question.
+        - Do not repeat the same question twice.
+        - Do not have anything trailing to the question.
 
-        Format:
-        - Question: Pose a question in English teaching a German concept.
-        - Choices: Provide four options (A, B, C, D).
+        Requested Question Format:
+        - Question: Pose a question to the learner in English, teaching German.
+        - Choices: Provide four answer options (labeled A, B, C, and D).
         - Correct Answer: Clearly specify the correct option.
-        - Difficulty: Easy, Medium, or Hard.
-        - Topic: Indicate one topic (e.g., Vocabulary, Verb Conjugation, etc.).
-        - Learning Objective: Specify the learning goal.
+        - Difficulty: Indicate whether the question is Easy, Medium, or Hard.
+        - Topic: Choose a single diverse topic relevant to learning German, such as:
+          - Vocabulary
+          - Verb Conjugation
+          - Sentence Structure
+          - Articles and Gender
+          - Prepositions
+          - Word Order
+          - Idiomatic Expressions
+          - Cultural References
+          - Numbers and Counting
+          - Dates and Time
+          - Pronunciation
+          - Cases (Nominative, Accusative, Dative, Genitive)
+        - Learning Objective: Specify the learning objective.
+
+        Stick to the same exact format for every question. Do not deviate.
 
         Example:
-        Context: A beginner learning German vocabulary related to colors.
-        Chain of Thought:
-        1. Context analysis: Focus on colors, a basic vocabulary topic.
-        2. Unique concept: Teach the word "Blau" (blue).
-        3. Question framing: Formulate a question asking about its meaning.
-        4. Verification: Ensure the topic (colors) differs from prior questions.
-        Final Output:
-        Question: What does the German word "Blau" mean in English?
+        Question: What does the German word "Haus" mean in English?
         Choices:
-        A. Blue
-        B. Green
-        C. Red
-        D. Yellow
-        Correct Answer: A
+        A. Tree
+        B. House
+        C. Car
+        D. Dog
+        Correct Answer: B
         Difficulty: Easy
         Topic: Vocabulary
-        Learning Objective: Learn German color vocabulary.
+        Learning Objective: Learn basic German vocabulary.
 
         Context: {context}
-        Use step-by-step reasoning to generate one unique question:
+        Generate a single quiz question based on the context and format:
         """
 
     def initialize_qa_chain(self):
         llm = CTransformers(
-            model="TheBloke/DiscoLM_German_7b_v1-GGUF",
+            model="MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF",
             model_file=self.model_file_path,
             temperature=0.7,
             max_tokens=2048,
@@ -126,29 +135,10 @@ class QuizGenerator:
                 # Get random context directly
                 context = self.get_random_context()
 
-                # Create prompt with context
-                prompt = f"""
-                Generate a single German language quiz question based on this text:
-                {context}
-
-                The question MUST follow this EXACT format:
-                Question: [Write the question in English only]
-                Choices:
-                A. [Option A]
-                B. [Option B]
-                C. [Option C]
-                D. [Option D]
-                Correct Answer: [Write A, B, C, or D]
-                Difficulty: [Write Easy, Medium, or Hard]
-                Topic: [Write the topic]
-                Learning Objective: [Write the learning objective]
-
-                Generate ONLY the quiz question in the format above. Do not include any other text.
-                """
-
                 # Generate question
                 result = qa_chain.invoke({
-                    "query": "Generate a helpful quiz question."
+                    "query": "Generate a helpful quiz question.",
+                    "context": context
                 })
 
                 print(f"\nQuiz {i + 1} Raw Output:")
@@ -174,14 +164,14 @@ class QuizGenerator:
         try:
             # Basic patterns for required fields
             question_pattern = r"Question:\s*(.+)"
-            choices_pattern = r"([A-D])\.\s*([^\n]+)"
+            choices_pattern = r"([A-D])[.)]\s*(.+)"
             correct_pattern = r"Correct Answer:\s*([A-D])"
             difficulty_pattern = r"Difficulty:\s*(\w+)"
             topic_pattern = r"Topic:\s*(.+?)(?=\n|$)"
             objective_pattern = r"Learning Objective:\s*(.+?)(?=\n|$)"
 
             # Extract components
-            question = re.search(question_pattern, result_text, re.DOTALL)
+            question = re.search(question_pattern, result_text)
             choices = re.findall(choices_pattern, result_text)
             correct = re.search(correct_pattern, result_text)
             difficulty = re.search(difficulty_pattern, result_text)
@@ -220,14 +210,14 @@ class QuizGenerator:
 
 def main():
     config = {
-        "pdf_path": "germanLanguage.pdf",
+        "pdf_path": "learnGerman.pdf",
         "db_path": "vector_db",
-        "model_file_path": "discolm_german_7b_v1.Q5_K_M.gguf"
+        "model_file_path": "Mistral-7B-Instruct-v0.3.Q4_K_S.gguf"
     }
 
     generator = QuizGenerator(**config)
     generator.process_pdf()
-    results = generator.generate_quizzes(5)
+    results = generator.generate_quizzes(10)
 
     with open("quizzes.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=4)
