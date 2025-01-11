@@ -10,7 +10,6 @@ from langchain.prompts import PromptTemplate
 from langchain_community.llms import CTransformers
 from langchain.chains import RetrievalQA
 
-
 class QuizGenerator:
     def __init__(self, pdf_path, db_path, model_file_path):
         self.pdf_path = pdf_path
@@ -51,6 +50,8 @@ class QuizGenerator:
         You are a German language quiz generator. Your task is to create a **single quiz question** based on the given context and in the requested Multiple Choice format.
         The question should be in **English** and designed to teach German effectively.
 
+        Use the given context: {context}
+        If the given context is helpful to teach german language, use the context. Else generate question from your knowledge.
         Requirements for the question:
         - The question text must be in English, teaching a German concept.
         - Only generate **one** question in the requested format.
@@ -93,15 +94,14 @@ class QuizGenerator:
         Topic: Vocabulary
         Learning Objective: Learn basic German vocabulary.
 
-        Context: {context}
         Generate a single quiz question based on the context and format:
         """
 
     def initialize_qa_chain(self):
         llm = CTransformers(
-            model="MaziyarPanahi/Mistral-7B-Instruct-v0.3-GGUF",
+            model="TheBloke/DiscoLM_German_7b_v1-GGUF",
             model_file=self.model_file_path,
-            temperature=0.7,
+            temperature=0.85,
             max_tokens=2048,
             top_p=1,
             n_ctx=2048,
@@ -134,7 +134,8 @@ class QuizGenerator:
             try:
                 # Get random context directly
                 context = self.get_random_context()
-
+                # Debug: Print the chunk context used for generation
+                print(f"\nQuiz {i + 1} Context:\n{context}\n")
                 # Generate question
                 result = qa_chain.invoke({
                     "query": "Generate a helpful quiz question.",
@@ -210,9 +211,9 @@ class QuizGenerator:
 
 def main():
     config = {
-        "pdf_path": "learnGerman.pdf",
+        "pdf_path": "germanLanguage.pdf",
         "db_path": "vector_db",
-        "model_file_path": "Mistral-7B-Instruct-v0.3.Q4_K_S.gguf"
+        "model_file_path": "discolm_german_7b_v1.Q5_K_M.gguf"
     }
 
     generator = QuizGenerator(**config)
