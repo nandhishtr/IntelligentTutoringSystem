@@ -17,7 +17,7 @@ class QuizGenerator:
         self.model_file_path = model_file_path
         self.used_chunks = set()
         self.used_topics = set()
-        self.chunk_size = 2000
+        self.chunk_size = 512
         self.chunk_overlap = 30
 
     def initialize_embeddings(self):
@@ -69,7 +69,7 @@ class QuizGenerator:
           - Vocabulary
           - Verb Conjugation
           - Sentence Structure
-          - Articles and Gender
+          - Articles and Genderv
           - Prepositions
           - Word Order
           - Idiomatic Expressions
@@ -101,9 +101,9 @@ class QuizGenerator:
         llm = CTransformers(
             model="TheBloke/DiscoLM_German_7b_v1-GGUF",
             model_file=self.model_file_path,
-            temperature=0.85,
-            max_tokens=2048,
-            top_p=1,
+            temperature=0.1,
+            max_tokens=512,
+            top_p=0.9,
             n_ctx=2048,
             config={'context_length': 4096}
         )
@@ -213,12 +213,12 @@ def main():
     config = {
         "pdf_path": "germanLanguage.pdf",
         "db_path": "vector_db",
-        "model_file_path": "discolm_german_7b_v1.Q5_K_M.gguf"
+        "model_file_path": "discolm_german_7b_v1.Q4_K_M.gguf"
     }
 
     generator = QuizGenerator(**config)
     generator.process_pdf()
-    results = generator.generate_quizzes(10)
+    results = generator.generate_quizzes(3)
 
     with open("quizzes.json", "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=4)
