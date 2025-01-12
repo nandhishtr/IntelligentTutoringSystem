@@ -175,7 +175,7 @@ OUTPUT (use exact format):""",
         """Generate multiple quizzes"""
         # Generate 3 quiz questions from random contexts
         quizzes = []
-        for i in range(3):
+        for i in range(count):
             print(f"\nGenerating Quiz Question {i + 1}:")
             print("-" * 50)
 
@@ -216,7 +216,7 @@ def main():
     quiz_generator.process_pdf()
 
     # Store all generated quizzes
-    all_quizzes = quiz_generator.generate_multiple_quizzes(3)
+    all_quizzes = quiz_generator.generate_multiple_quizzes(100)
 
     # Save all generated quizzes to JSON file
     quiz_generator.save_quizzes_to_json(all_quizzes)
