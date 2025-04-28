@@ -1,18 +1,22 @@
 import random
 from deap import base, creator, tools
 import json
+import time
 
 # Load questions from a JSON file
 def load_questions(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
-def evaluate(individual, user_performance):
-    """Fitness function that evaluates individuals based on user performance and diversity."""
+# Calculates the fitness of an individual (a set of questions) based on user performance
+# and question diversity. It rewards questions based on user performance and penalizes
+# repeated topics.
+def evaluate(individual, user_performance, time_spent):
+    """Fitness function that evaluates individuals based on user performance, diversity, and time spent."""
     fitness = 0
     seen_topics = set()
 
-    for question in individual:
+    for question, time in zip(individual, time_spent):
         # Reward based on user performance for the topic
         topic_fitness = user_performance.get(question["Topic"], 1)
         difficulty_score = {"Easy": 1, "Medium": 2, "Hard": 3}.get(question["Difficulty"], 1)
@@ -23,10 +27,12 @@ def evaluate(individual, user_performance):
             fitness -= 1  # Reduce fitness for repeated topics
         seen_topics.add(question["Topic"])
 
+        # Penalize for longer time spent
+        fitness -= time  # Adjust this penalty as needed
     return (fitness,)
 
 
-def adaptive_quiz_ga(questions, user_performance, num_questions=10, generations=50, population_size=20):
+def adaptive_quiz_ga(questions, user_performance, time_spent, num_questions=10, generations=50, population_size=20):
     """Genetic algorithm for selecting quiz questions."""
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -37,7 +43,7 @@ def adaptive_quiz_ga(questions, user_performance, num_questions=10, generations=
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
     # Define genetic operators
-    toolbox.register("evaluate", evaluate, user_performance=user_performance)
+    toolbox.register("evaluate", evaluate, user_performance=user_performance, time_spent=time_spent)
     toolbox.register("mate", tools.cxTwoPoint)
     toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.2)
     toolbox.register("select", tools.selTournament, tournsize=3)
@@ -78,18 +84,23 @@ def adaptive_quiz_ga(questions, user_performance, num_questions=10, generations=
 def run_quiz(questions, num_questions=10):
     user_performance = {}
     asked_questions = []
+    time_spent = []
 
     print("Welcome to the adaptive German vocabulary quiz!")
 
+    correct_answers = 0
     for i in range(num_questions):
         # Run the genetic algorithm to pick the next quiz
-        best_quiz = adaptive_quiz_ga(questions, user_performance, num_questions=1)
+        best_quiz = adaptive_quiz_ga(questions, user_performance, time_spent, num_questions=1)
         question = best_quiz[0]
 
         # Display the question
         print(f"\nQuestion {i + 1}: {question['Question']}")
         for idx, choice in enumerate(question["Choices"], 1):
             print(f"{idx}. {choice}")
+
+        # Track start time
+        start_time = time.time()
 
         # User's answer
         user_answer = input("Your answer (1-4): ").strip()
@@ -100,10 +111,15 @@ def run_quiz(questions, num_questions=10):
             print("Invalid choice. Moving to the next question.")
             continue
 
+        # Track end time and calculate time spent
+        end_time = time.time()
+        time_spent.append(end_time - start_time)
+
         # Evaluate the answer
         if selected_answer == question["CorrectAnswer"]:
             print("Correct!")
             user_performance[question["Topic"]] = user_performance.get(question["Topic"], 1) + 1
+            correct_answers += 1
         else:
             print(f"Wrong! The correct answer was: {question['CorrectAnswer']}")
             user_performance[question["Topic"]] = max(1, user_performance.get(question["Topic"], 1) - 1)
@@ -111,11 +127,11 @@ def run_quiz(questions, num_questions=10):
         # Track asked questions
         asked_questions.append(question)
 
-    print(f"\nQuiz completed! You answered {len([q for q in asked_questions if q['CorrectAnswer'] == selected_answer])} correctly out of {num_questions}.")
+    print(f"\nQuiz completed! You answered {correct_answers} correctly out of {num_questions}.")
 
 def main():
     questions_file = "quiz_questions.json"
-    questions = load_questions(questions_file)
+    questions = load_questions(questions_file) # List of qns repr as dict
 
     run_quiz(questions, num_questions=10)
 
